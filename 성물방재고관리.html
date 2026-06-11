@@ -2795,7 +2795,7 @@ function printRcpt(){
   setTimeout(function(){w.print();},500);
 }
 
-if(typeof loadFromFirebase==='function'){loadFromFirebase();}else{rTop();rD();}
+
 </script>
 
 
@@ -2828,5 +2828,6 @@ function startRealtime(){
     else if(t===7)rAnnual();else if(t===8)rLedger();else if(t===9)rBank();
   });
 }
+loadFromFirebase();
 </script>
 </body></html>
