@@ -2142,8 +2142,12 @@ function rBank(){
 
   // 잔액 누계 시작값 (필터 이전 거래 합산)
   var runBase=bankAcc.balance||0;
-  if(bkFltMode!=='전체'){
-    allTxFull.forEach(function(t){if(!inRange(t.rd))runBase+=(t.type==='입금'?t.amt:-t.amt);});
+  var bkDateFrom=bkFltMode==='일별'?bkFltDay:bkFltMode==='월별'?bkFltMo+'-01':bkFltMode==='연도별'?bkFltYear+'-01-01':bkFltMode==='기간별'?(bkFltFrom||''):null;
+  if(bkDateFrom){
+    allTxFull.forEach(function(t){
+      var d=(t.rd||'').slice(0,10);
+      if(d<bkDateFrom) runBase+=(t.type==='입금'?t.amt:-t.amt);
+    });
   }
 
   // 거래 행 생성
@@ -2268,19 +2272,22 @@ function rBank(){
   ['전체','연도별','월별','일별','기간별'].forEach(function(m){h+='<option value="'+m+'" '+(bkFltMode===m?'selected':'')+'>'+m+'</option>';});
   h+='</select>';
   if(bkFltMode==='연도별'){
-    var cy=new Date().getFullYear(),yrs=[];for(var y=cy;y>=2024;y--)yrs.push(y+'');
-    h+='<select onchange="bkFltYear=this.value;rBank()" style="border:none;border-radius:5px;padding:4px 8px;font-size:12px;background:#fff;color:#333">';
-    h+='<option value="">년도선택</option>';
-    yrs.forEach(function(y){h+='<option value="'+y+'" '+(bkFltYear===y?'selected':'')+'>'+y+'년</option>';});
-    h+='</select>';
+    var bkSelYr=bkFltYear?parseInt(bkFltYear):new Date().getFullYear();
+    h+='<button onclick="changeBkYear(-1)" style="border:none;background:rgba(255,255,255,.2);color:#fff;border-radius:5px;padding:4px 8px;font-size:13px;cursor:pointer;font-weight:700">◀</button>';
+    h+='<span style="font-size:13px;font-weight:700;color:#fff;min-width:55px;text-align:center">'+bkSelYr+'년</span>';
+    h+='<button onclick="changeBkYear(1)" style="border:none;background:rgba(255,255,255,.2);color:#fff;border-radius:5px;padding:4px 8px;font-size:13px;cursor:pointer;font-weight:700">▶</button>';
+    bkFltYear=String(bkSelYr);
   } else if(bkFltMode==='월별'){
-    var now3=new Date(),ml=[];
-    for(var yr2=2024;yr2<=now3.getFullYear();yr2++){var mm=(yr2===now3.getFullYear()?now3.getMonth()+1:12);for(var mo2=1;mo2<=mm;mo2++){ml.push({v:yr2+'-'+('0'+mo2).slice(-2),l:yr2+'년 '+mo2+'월'});}}
-    ml.reverse();
-    h+='<select onchange="bkFltMo=this.value;rBank()" style="border:none;border-radius:5px;padding:4px 8px;font-size:12px;background:#fff;color:#333">';
-    h+='<option value="">월선택</option>';
-    ml.forEach(function(mo){h+='<option value="'+mo.v+'" '+(bkFltMo===mo.v?'selected':'')+'>'+mo.l+'</option>';});
-    h+='</select>';
+    var bkSelMoYr=bkFltMo?parseInt(bkFltMo.slice(0,4)):new Date().getFullYear();
+    var bkSelMo=bkFltMo?parseInt(bkFltMo.slice(5,7)):new Date().getMonth()+1;
+    h+='<button onclick="changeBkMoYear(-1)" style="border:none;background:rgba(255,255,255,.2);color:#fff;border-radius:5px;padding:4px 8px;font-size:13px;cursor:pointer;font-weight:700">◀</button>';
+    h+='<span style="font-size:13px;font-weight:700;color:#fff;min-width:55px;text-align:center">'+bkSelMoYr+'년</span>';
+    h+='<button onclick="changeBkMoYear(1)" style="border:none;background:rgba(255,255,255,.2);color:#fff;border-radius:5px;padding:4px 8px;font-size:13px;cursor:pointer;font-weight:700">▶</button>';
+    for(var bkmi=1;bkmi<=12;bkmi++){
+      var bkmv=bkSelMoYr+'-'+('0'+bkmi).slice(-2);
+      var isBkMo=(bkmi===bkSelMo&&bkFltMo===bkmv);
+      h+='<button data-bmv="'+bkmv+'" onclick="bkFltMo=this.dataset.bmv;bkSelMoMo='+bkmi+';rBank()" style="border:none;border-radius:5px;padding:4px 7px;font-size:12px;cursor:pointer;font-weight:700;background:'+(isBkMo?'#fff':'rgba(255,255,255,.15)')+';color:'+(isBkMo?'#5c2000':'#fff')+'">'+bkmi+'월</button>';
+    }
   } else if(bkFltMode==='일별'){
     h+='<input type="date" value="'+bkFltDay+'" onchange="bkFltDay=this.value;rBank()" style="border:none;border-radius:5px;padding:4px 8px;font-size:12px;background:#fff;color:#333">';
   } else if(bkFltMode==='기간별'){
@@ -2334,6 +2341,21 @@ function setBkPay(n){
 }
 function fillBkName(v){var el=document.getElementById('bkName');if(el&&v)el.value=v+' 매입결재';}
 function clearBkFilter(){bkFltMode='전체';bkFltYear='';bkFltMo='';bkFltDay='';bkFltFrom='';bkFltTo='';rBank();}
+function changeBkYear(d){
+  var yr=bkFltYear?parseInt(bkFltYear):new Date().getFullYear();
+  yr+=d;
+  if(yr<2024) yr=2024;
+  bkFltYear=String(yr);
+  rBank();
+}
+function changeBkMoYear(d){
+  var yr=bkFltMo?parseInt(bkFltMo.slice(0,4)):new Date().getFullYear();
+  var mo=bkFltMo?parseInt(bkFltMo.slice(5,7)):new Date().getMonth()+1;
+  yr+=d;
+  if(yr<2024) yr=2024;
+  bkFltMo=yr+'-'+('0'+mo).slice(-2);
+  rBank();
+}
 function changeBkMode(v){bkFltMode=v;bkFltYear='';bkFltMo='';bkFltDay='';bkFltFrom='';bkFltTo='';rBank();}
 
 
@@ -2450,26 +2472,23 @@ function printBank(){
   }
   var allTx=allTxFull.filter(function(t){return inRange(t.rd);});
 
-  var totalIn=inTx.reduce(function(a,t){return a+t.amt;},0);
-  var totalExtraIn=bankExtra.filter(function(t){return t.type==='입금';}).reduce(function(a,t){return a+t.amt;},0);
-  var totalOut=bankExtra.filter(function(t){return t.type==='출금';}).reduce(function(a,t){return a+t.amt;},0);
-  var balance=(bankAcc.balance||0)+totalIn+totalExtraIn-totalOut;
-
+  var runningBase=bankAcc.balance||0;
+  var dateLimit=bkFltMode==='일별'?bkFltDay:bkFltMode==='월별'?bkFltMo+'-01':bkFltMode==='연도별'?bkFltYear+'-01-01':bkFltMode==='기간별'?(bkFltFrom||''):null;
+  if(dateLimit){
+    allTxFull.forEach(function(t){
+      var d=(t.rd||'').slice(0,10);
+      if(d<dateLimit) runningBase+=(t.type==='입금'?t.amt:-t.amt);
+    });
+  }
+  var running=runningBase;
+  var balance=runningBase+allTx.reduce(function(a,t){return a+(t.type==='입금'?t.amt:-t.amt);},0);
   var fIn=allTx.filter(function(t){return t.type==='입금';}).reduce(function(a,t){return a+t.amt;},0);
   var fOut=allTx.filter(function(t){return t.type==='출금';}).reduce(function(a,t){return a+t.amt;},0);
-
-  // 기간 레이블
   var periodLabel='전체';
   if(bkFltMode==='연도별'&&bkFltYear) periodLabel=bkFltYear+'년';
   else if(bkFltMode==='월별'&&bkFltMo) periodLabel=bkFltMo;
   else if(bkFltMode==='일별'&&bkFltDay) periodLabel=bkFltDay;
   else if(bkFltMode==='기간별') periodLabel=(bkFltFrom||'')+'~'+(bkFltTo||'');
-
-  var runningBase=bankAcc.balance||0;
-  if(bkFltMode!=='전체'){
-    allTxFull.forEach(function(t){if(!inRange(t.rd))runningBase+=(t.type==='입금'?t.amt:-t.amt);});
-  }
-  var running=runningBase;
   var rows='';
   if(bkFltMode==='전체'&&bankAcc.balance>0){
     rows+='<tr><td>-</td><td colspan="2">기초잔액</td>'
@@ -2507,14 +2526,16 @@ function printBank(){
   b+='<div class="sec">거래 내역 ('+allTx.length+'건)</div>';
   b+='<table><thead><tr><th style="width:72px">날짜</th><th>내용</th><th style="width:45px">구분</th><th style="width:80px">입금</th><th style="width:80px">출금</th><th style="width:88px">잔액</th><th>비고</th></tr></thead><tbody>'+rows+'</tbody></table>';
   var allTX=ld('mj_tx',[]);var allPU=ld('mj_pu',[]);
-  var allSale=allTX.filter(function(t){return t.type==='출고';}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0);
-  var allCost=allTX.filter(function(t){return t.type==='출고';}).reduce(function(a,t){return a+t.qty*(t.cost||0);},0);
+  var bkDateTo=bkFltMode==='일별'?bkFltDay:bkFltMode==='월별'?(function(){var m=bkFltMo||td().slice(0,7);var ld3=new Date(parseInt(m.slice(0,4)),parseInt(m.slice(5,7)),0).getDate();return m+'-'+('0'+ld3).slice(-2);}()):bkFltMode==='연도별'?bkFltYear+'-12-31':bkFltMode==='기간별'?bkFltTo:td();
+  var allSale=allTX.filter(function(t){return t.type==='출고'&&(t.rd||'').slice(0,10)<=bkDateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0);
+  var allCost=allTX.filter(function(t){return t.type==='출고'&&(t.rd||'').slice(0,10)<=bkDateTo;}).reduce(function(a,t){return a+t.qty*(t.cost||0);},0);
   var allPr=allSale-allCost;
   var _pBkEx=ld('mj_bank_extra',[]);
-  var allCash=allTX.filter(function(t){return t.type==='출고'&&t.pay==='현금';}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+_pBkEx.filter(function(e){return e.category==='잡수입'&&e.payMethod==='현금';}).reduce(function(a,e){return a+(e.amt||0);},0);
-  var allBank=allTX.filter(function(t){return t.type==='출고'&&t.pay==='계좌이체';}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+(ld('mj_bank',{balance:0}).balance||0)+_pBkEx.filter(function(e){return e.type==='입금'&&e.category!=='잡수입';}).reduce(function(a,e){return a+(e.amt||0);},0)-_pBkEx.filter(function(e){return e.type==='출금';}).reduce(function(a,e){return a+(e.amt||0);},0)+_pBkEx.filter(function(e){return e.category==='잡수입'&&e.payMethod==='계좌이체';}).reduce(function(a,e){return a+(e.amt||0);},0);
-  var allPuTotal=allPU.reduce(function(a,p){return a+(p.tot||0);},0);
-  var allPaid=_pBkEx.filter(function(e){return e.type==='출금';}).reduce(function(a,e){return a+(e.amt||0);},0);
+  var _pBkExTo2=_pBkEx.filter(function(e){return (e.dt||e.rd||'').slice(0,10)<=bkDateTo;});
+  var allCash=allTX.filter(function(t){return t.type==='출고'&&t.pay==='현금'&&(t.rd||'').slice(0,10)<=bkDateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+_pBkExTo2.filter(function(e){return e.category==='잡수입'&&e.payMethod==='현금';}).reduce(function(a,e){return a+(e.amt||0);},0);
+  var allBank=allTX.filter(function(t){return t.type==='출고'&&t.pay==='계좌이체'&&(t.rd||'').slice(0,10)<=bkDateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+(ld('mj_bank',{balance:0}).balance||0)+_pBkExTo2.filter(function(e){return e.type==='입금'&&e.category!=='잡수입';}).reduce(function(a,e){return a+(e.amt||0);},0)-_pBkExTo2.filter(function(e){return e.type==='출금';}).reduce(function(a,e){return a+(e.amt||0);},0)+_pBkExTo2.filter(function(e){return e.category==='잡수입'&&e.payMethod==='계좌이체';}).reduce(function(a,e){return a+(e.amt||0);},0);
+  var allPuTotal=allPU.filter(function(p){return (p.rd||p.dt||'').slice(0,10)<=bkDateTo;}).reduce(function(a,p){return a+(p.tot||0);},0);
+  var allPaid=_pBkExTo2.filter(function(e){return e.type==='출금';}).reduce(function(a,e){return a+(e.amt||0);},0);
   var allUnpaid=Math.max(0,allPuTotal-allPaid);
   b+='<div class="sec" style="background:#3a0e00;color:#fff;padding:8px 12px;border-radius:6px;margin-top:16px">📊 전체 누계 현황</div>';
   b+=kH([{l:'💵 누계 현금수입',v:won(allCash),c:'#1a7a30'},{l:'🏦 누계 계좌수입',v:won(allBank),c:'#1b6ca8'},{l:'📊 누계 판매합계',v:won(allSale),c:'#5c2000'},{l:(allPr>=0?'📈 누계 순수익':'📉 누계 손실'),v:(allPr>=0?'+':'')+won(allPr),c:allPr>=0?'#1a7a30':'#c0392b'}]);
