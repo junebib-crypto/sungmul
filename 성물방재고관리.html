@@ -316,7 +316,18 @@ function rD(){
   var dJaip=_bkExAll.filter(function(e){try{var d=(e.dt||e.rd||'').slice(0,10);return e.category==='잡수입'&&d>=dateFrom&&d<=dateTo;}catch(er){return false;}}).reduce(function(a,e){return a+(e.amt||0);},0);
   var allJaip=_jaipCash+_jaipBank;
   var allCash=TX.filter(function(t){return t.type==='출고'&&t.pay==='현금'&&(t.rd||'').slice(0,10)<=dateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)-_bkExAllTo.filter(function(e){return e.type==='입금'&&e.category!=='잡수입';}).reduce(function(a,e){return a+(e.amt||0);},0)+_jaipCash;
-  var allBank=(ld('mj_bank',{balance:0}).balance||0)+TX.filter(function(t){return t.type==='출고'&&t.pay==='계좌이체'&&(t.rd||'').slice(0,10)<=dateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+_bkExAllTo.filter(function(e){return e.type==='입금'&&e.category!=='잡수입';}).reduce(function(a,e){return a+(e.amt||0);},0)-_bkExAllTo.filter(function(e){return e.type==='출금';}).reduce(function(a,e){return a+(e.amt||0);},0)+_jaipBank;
+  var allBank=TX.filter(function(t){return t.type==='출고'&&t.pay==='계좌이체'&&(t.rd||'').slice(0,10)<=dateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+_bkExAllTo.filter(function(e){return e.category==='잡수입'&&e.payMethod==='계좌이체';}).reduce(function(a,e){return a+(e.amt||0);},0);
+  // 연간 누계 (해당 연도 1월 1일 ~ dateTo)
+  var yearStart=dateTo.slice(0,4)+'-01-01';
+  var yrSale=TX.filter(function(t){return t.type==='출고'&&(t.rd||'').slice(0,10)>=yearStart&&(t.rd||'').slice(0,10)<=dateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0);
+  var yrCost=TX.filter(function(t){return t.type==='출고'&&(t.rd||'').slice(0,10)>=yearStart&&(t.rd||'').slice(0,10)<=dateTo;}).reduce(function(a,t){return a+t.qty*(t.cost||0);},0);
+  var yrPr=yrSale-yrCost;
+  var _bkExYr=_bkExAll.filter(function(e){var d=(e.dt||e.rd||'').slice(0,10);return d>=yearStart&&d<=dateTo;});
+  var yrJaipCash=_bkExYr.filter(function(e){return e.category==='잡수입'&&e.payMethod==='현금';}).reduce(function(a,e){return a+(e.amt||0);},0);
+  var yrJaipBank=_bkExYr.filter(function(e){return e.category==='잡수입'&&e.payMethod==='계좌이체';}).reduce(function(a,e){return a+(e.amt||0);},0);
+  var yrJaip=yrJaipCash+yrJaipBank;
+  var yrCash=TX.filter(function(t){return t.type==='출고'&&t.pay==='현금'&&(t.rd||'').slice(0,10)>=yearStart&&(t.rd||'').slice(0,10)<=dateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+yrJaipCash;
+  var yrBank=TX.filter(function(t){return t.type==='출고'&&t.pay==='계좌이체'&&(t.rd||'').slice(0,10)>=yearStart&&(t.rd||'').slice(0,10)<=dateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+yrJaipBank;
   var sR=''; dS.forEach(function(t){var m=t.qty*((t.sale||0)-(t.cost||0));sR+='<tr><td style="font-size:10px;color:#aaa">'+ex(t.dt)+'</td><td><b>'+ex(t.name)+'</b>'+sp(t.spec)+'</td><td style="text-align:center">'+t.qty+'</td><td style="text-align:right">'+won(t.sale)+'</td><td style="text-align:right;color:#a0522d">'+won(t.cost)+'</td><td style="text-align:right;font-weight:700;color:#5c2000">'+won(t.qty*(t.sale||0))+'</td><td style="text-align:right;font-weight:700;color:'+(m>=0?'#1a7a30':'#c0392b')+'">'+(m>=0?'+':'')+won(m)+'</td><td><span style="background:'+(t.pay==='현금'?'#eaf7ee':'#eaf4fb')+';color:'+(t.pay==='현금'?'#1a7a30':'#1b6ca8')+';border-radius:3px;padding:1px 5px;font-size:10px;font-weight:700">'+ex(t.pay)+'</span></td><td><button style="border:none;background:none;color:#ccc;cursor:pointer;font-size:14px" onclick="delT('+t.id+')">×</button> <button style="border:none;border-radius:4px;padding:2px 6px;font-size:10px;cursor:pointer;background:#f5ede0;color:#8b4513" onclick="showReceipt('+t.id+')">🧾</button></td></tr>';});
   if(dS.length)sR+='<tr style="background:#fdf0e0;font-weight:700"><td colspan="5" style="color:#6b2d0e">합 계</td><td style="text-align:right;color:#6b2d0e">'+won(tS)+'</td><td style="text-align:right;color:'+(pr>=0?'#1a7a30':'#c0392b')+'">'+(pr>=0?'+':'')+won(pr)+'</td><td colspan="2" style="font-size:11px;color:#999">현금:'+won(cash)+'/이체:'+won(bank)+'</td></tr>';
   var pR=''; dP.forEach(function(p){pR+='<tr><td style="font-size:10px;color:#aaa">'+ex(p.dt)+'</td><td style="font-weight:700;color:#5c2000">'+ex(p.sup)+'</td><td>'+ex(p.name)+sp(p.spec)+'</td><td style="text-align:center">'+p.qty+'</td><td style="text-align:right">'+won(p.cost)+'</td><td style="text-align:right;font-weight:700">'+won(p.tot)+'</td></tr>';});
@@ -342,9 +353,9 @@ function rD(){
     h+='<input type="date" class="inp" style="width:145px;background:#fff;color:#333" value="'+dDate+'" onchange="dDate=this.value;rD()">';
   }
   h+='<button class="bp" onclick="dDate=td();rD()">오늘</button>';
-  h+='<button class="bb" onclick="pDay()">🖨️ '+(dMode==='주'?'주계표':dMode==='월'?'월계표':dMode==='기간'?'기간계표':'일계표')+' 출력</button>';
+  h+='<button class="bb" onclick="pDay()">🖨️ '+(dMode==='주'?'주계표':dMode==='월'?'월계표':dMode==='기간'?'기간계표':'일계표')+' 출력</button><button class="bs" onclick="pDay(true)" style="margin-left:4px;font-size:11px">📊 전체 누계 포함</button>';
   h+='<span style="margin-left:auto;color:#a08060;font-size:12px;font-weight:600">'+periodLabel+'</span></div>';
-  h+='<div style="margin-bottom:8px"><div style="font-size:11px;color:#8b4513;font-weight:700;margin-bottom:5px;padding-left:2px">📅 '+(dMode==='주'?periodLabel+' (주간)':dMode==='월'?periodLabel+' (월간)':dStr(dDate))+' 실적</div><div class="kpi" style="margin-bottom:6px"><div class="kc"><div class="kl">💵 현금 판매</div><div class="kv" style="color:#a9dfbf">'+won(cash)+'</div></div><div class="kc"><div class="kl">🏦 계좌이체</div><div class="kv" style="color:#bee3f8">'+won(bank)+'</div></div><div class="kc"><div class="kl">📊 '+(dMode==='주'?'주간':dMode==='월'?'월간':'하루')+' 판매합계</div><div class="kv" style="color:#fde68a">'+won(tS)+'</div></div><div class="kc"><div class="kl">📦 '+(dMode==='주'?'주간':dMode==='월'?'월간':'하루')+' 매입합계</div><div class="kv" style="color:#f5cba7">'+won(tP)+'</div></div><div class="kc"><div class="kl">💰 '+(dMode==='주'?'주간':dMode==='월'?'월간':'하루')+' 원가합계</div><div class="kv" style="color:#f5cba7">'+won(tC)+'</div></div><div class="kc"><div class="kl">🎁 '+(dMode==='주'?'주간':dMode==='월'?'월간':'하루')+' 잡수입</div><div class="kv" style="color:#f5cba7">'+won(dJaip)+'</div></div><div class="kc"><div class="kl">'+(pr>=0?'📈 '+(dMode==='주'?'주간':dMode==='월'?'월간':'하루')+' 수익':'📉 손실')+'</div><div class="kv" style="color:'+(pr>=0?'#a9dfbf':'#f5a0a0')+'">'+(pr>=0?'+':'')+won(pr)+'</div></div></div><div style="font-size:11px;color:#8b4513;font-weight:700;margin-bottom:5px;padding-left:2px">📈 전체 누적 실적</div><div class="kpi"><div class="kc"><div class="kl">💵 전체 현금합계</div><div class="kv" style="color:#a9dfbf">'+won(allCash)+'</div></div><div class="kc"><div class="kl">🏦 전체 계좌합계</div><div class="kv" style="color:#bee3f8">'+won(allBank)+'</div></div><div class="kc"><div class="kl">📊 전체 판매합계</div><div class="kv" style="color:#fde68a">'+won(allSale)+'</div></div><div class="kc"><div class="kl">💰 전체 원가합계</div><div class="kv" style="color:#f5cba7">'+won(allCost)+'</div></div><div class="kc"><div class="kl">🎁 전체 잡수입</div><div class="kv" style="color:#f5cba7">'+won(allJaip)+'</div></div><div class="kc"><div class="kl">'+(allPr>=0?'📈 전체 누적수익':'📉 전체 손실')+'</div><div class="kv" style="color:'+(allPr>=0?'#a9dfbf':'#f5a0a0')+'">'+(allPr>=0?'+':'')+won(allPr)+'</div></div></div></div>';
+  h+='<div style="margin-bottom:8px"><div style="font-size:11px;color:#8b4513;font-weight:700;margin-bottom:5px;padding-left:2px">📅 '+(dMode==='주'?periodLabel+' (주간)':dMode==='월'?periodLabel+' (월간)':dStr(dDate))+' 실적</div><div class="kpi" style="margin-bottom:6px"><div class="kc"><div class="kl">💵 현금 판매</div><div class="kv" style="color:#a9dfbf">'+won(cash)+'</div></div><div class="kc"><div class="kl">🏦 계좌이체</div><div class="kv" style="color:#bee3f8">'+won(bank)+'</div></div><div class="kc"><div class="kl">📊 '+(dMode==='주'?'주간':dMode==='월'?'월간':'하루')+' 판매합계</div><div class="kv" style="color:#fde68a">'+won(tS)+'</div></div><div class="kc"><div class="kl">📦 '+(dMode==='주'?'주간':dMode==='월'?'월간':'하루')+' 매입합계</div><div class="kv" style="color:#f5cba7">'+won(tP)+'</div></div><div class="kc"><div class="kl">💰 '+(dMode==='주'?'주간':dMode==='월'?'월간':'하루')+' 원가합계</div><div class="kv" style="color:#f5cba7">'+won(tC)+'</div></div><div class="kc"><div class="kl">🎁 '+(dMode==='주'?'주간':dMode==='월'?'월간':'하루')+' 잡수입</div><div class="kv" style="color:#f5cba7">'+won(dJaip)+'</div></div><div class="kc"><div class="kl">'+(pr>=0?'📈 '+(dMode==='주'?'주간':dMode==='월'?'월간':'하루')+' 수익':'📉 손실')+'</div><div class="kv" style="color:'+(pr>=0?'#a9dfbf':'#f5a0a0')+'">'+(pr>=0?'+':'')+won(pr)+'</div></div></div><div style="font-size:11px;color:#8b4513;font-weight:700;margin-bottom:5px;padding-left:2px">📅 '+dateTo.slice(0,4)+'년 연간 누계</div><div class="kpi" style="margin-bottom:6px"><div class="kc"><div class="kl">💵 연간 현금합계</div><div class="kv" style="color:#a9dfbf">'+won(yrCash)+'</div></div><div class="kc"><div class="kl">🏦 연간 계좌합계</div><div class="kv" style="color:#bee3f8">'+won(yrBank)+'</div></div><div class="kc"><div class="kl">📊 연간 판매합계</div><div class="kv" style="color:#fde68a">'+won(yrSale)+'</div></div><div class="kc"><div class="kl">💰 연간 원가합계</div><div class="kv" style="color:#f5cba7">'+won(yrCost)+'</div></div><div class="kc"><div class="kl">🎁 연간 잡수입</div><div class="kv" style="color:#f5cba7">'+won(yrJaip)+'</div></div><div class="kc"><div class="kl">'+(yrPr>=0?'📈 연간 순수익':'📉 연간 손실')+'</div><div class="kv" style="color:'+(yrPr>=0?'#a9dfbf':'#f5a0a0')+'">'+(yrPr>=0?'+':'')+won(yrPr)+'</div></div></div>'+'<div style="text-align:right;margin-bottom:4px"><button onclick="toggleAllCumul()" style="border:none;background:rgba(255,255,255,.15);color:#fff;border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer">📊 전체 누계 보기</button></div>'+'<div id="allCumulDiv" style="display:none"><div style="font-size:11px;color:#8b4513;font-weight:700;margin-bottom:5px;padding-left:2px">📈 전체 누계 (처음~'+dateTo+')</div><div class="kpi"><div class="kc"><div class="kl">💵 전체 현금합계</div><div class="kv" style="color:#a9dfbf">'+won(allCash)+'</div></div><div class="kc"><div class="kl">🏦 전체 계좌합계</div><div class="kv" style="color:#bee3f8">'+won(allBank)+'</div></div><div class="kc"><div class="kl">📊 전체 판매합계</div><div class="kv" style="color:#fde68a">'+won(allSale)+'</div></div><div class="kc"><div class="kl">💰 전체 원가합계</div><div class="kv" style="color:#f5cba7">'+won(allCost)+'</div></div><div class="kc"><div class="kl">🎁 전체 잡수입</div><div class="kv" style="color:#f5cba7">'+won(allJaip)+'</div></div><div class="kc"><div class="kl">'+(allPr>=0?'📈 전체 누적수익':'📉 전체 손실')+'</div><div class="kv" style="color:'+(allPr>=0?'#a9dfbf':'#f5a0a0')+'">'+(allPr>=0?'+':'')+won(allPr)+'</div></div></div></div></div>';
   h+='<div class="g2"><div class="card"><h2 style="font-size:14px;font-weight:700;color:#5c2000;margin-bottom:11px">⚡ 빠른 판매</h2>';
   h+='<div class="fld"><label>품목 검색</label><div style="position:relative"><input type="text" class="inp" id="dSI" placeholder="🔍 품목명·규격 검색..." oninput="dSrch(this.value)" onfocus="dSrch(this.value)"><div class="sdrop" id="dSD" style="display:none"></div></div>'+sb+'</div>';
   h+='<div class="fld"><label>수량</label><input type="number" class="inp" id="dQ" value="1" min="1"></div>';
@@ -879,7 +890,8 @@ function pOpen(b){
 }
 function sigH(){return '<div class="sig"><div class="sb"><div class="sn">담&nbsp;당</div><div class="sl">(인)</div></div><div class="sb"><div class="sn">확&nbsp;인</div><div class="sl">(인)</div></div><div class="sb"><div class="sn">결&nbsp;재</div><div class="sl">(인)</div></div></div>';}
 function kH(cs){var h='<div class="kp">';cs.forEach(function(c){h+='<div class="kc"><div class="kl">'+c.l+'</div><div class="kv" style="color:'+(c.c||'#5c2000')+'">'+c.v+'</div></div>';});return h+'</div>';}
-function pDay(){
+function pDay(inclAllCumul){
+  inclAllCumul=inclAllCumul||false;
   // dMode에 따라 날짜 범위 계산 (rD와 동일)
   var dateFrom=dDate, dateTo=dDate;
   var periodLabel=dStr(dDate);
@@ -935,19 +947,34 @@ function pDay(){
     b+='<table><thead><tr><th>시간</th><th>공급처</th><th>품목명</th><th>수량</th><th>단가</th><th>금액</th></tr></thead><tbody>'+pR+'</tbody></table>';
   }
   var allTX=ld('mj_tx',[]);var allPU=ld('mj_pu',[]);
+  var _pBkEx=ld('mj_bank_extra',[]);
+  var _pBkExTo=_pBkEx.filter(function(e){return (e.dt||e.rd||'').slice(0,10)<=dateTo;});
+  // 연간 누계
+  var pYearStart=dateTo.slice(0,4)+'-01-01';
+  var _pBkExYr=_pBkEx.filter(function(e){var d=(e.dt||e.rd||'').slice(0,10);return d>=pYearStart&&d<=dateTo;});
+  var yrSaleP=allTX.filter(function(t){return t.type==='출고'&&(t.rd||'').slice(0,10)>=pYearStart&&(t.rd||'').slice(0,10)<=dateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0);
+  var yrCostP=allTX.filter(function(t){return t.type==='출고'&&(t.rd||'').slice(0,10)>=pYearStart&&(t.rd||'').slice(0,10)<=dateTo;}).reduce(function(a,t){return a+t.qty*(t.cost||0);},0);
+  var yrPrP=yrSaleP-yrCostP;
+  var yrCashP=allTX.filter(function(t){return t.type==='출고'&&t.pay==='현금'&&(t.rd||'').slice(0,10)>=pYearStart&&(t.rd||'').slice(0,10)<=dateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+_pBkExYr.filter(function(e){return e.category==='잡수입'&&e.payMethod==='현금';}).reduce(function(a,e){return a+(e.amt||0);},0);
+  var yrBankP=allTX.filter(function(t){return t.type==='출고'&&t.pay==='계좌이체'&&(t.rd||'').slice(0,10)>=pYearStart&&(t.rd||'').slice(0,10)<=dateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+_pBkExYr.filter(function(e){return e.category==='잡수입'&&e.payMethod==='계좌이체';}).reduce(function(a,e){return a+(e.amt||0);},0);
+  var yrJaipP=_pBkExYr.filter(function(e){return e.category==='잡수입';}).reduce(function(a,e){return a+(e.amt||0);},0);
+  // 전체 누계
   var allSale=allTX.filter(function(t){return t.type==='출고'&&(t.rd||'').slice(0,10)<=dateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0);
   var allCost=allTX.filter(function(t){return t.type==='출고'&&(t.rd||'').slice(0,10)<=dateTo;}).reduce(function(a,t){return a+t.qty*(t.cost||0);},0);
   var allPr=allSale-allCost;
-  var _pBkEx=ld('mj_bank_extra',[]);
-  var _pBkExTo=_pBkEx.filter(function(e){return (e.dt||e.rd||'').slice(0,10)<=dateTo;});
   var allCash=allTX.filter(function(t){return t.type==='출고'&&t.pay==='현금'&&(t.rd||'').slice(0,10)<=dateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+_pBkExTo.filter(function(e){return e.category==='잡수입'&&e.payMethod==='현금';}).reduce(function(a,e){return a+(e.amt||0);},0);
-  var allBank=allTX.filter(function(t){return t.type==='출고'&&t.pay==='계좌이체'&&(t.rd||'').slice(0,10)<=dateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+(ld('mj_bank',{balance:0}).balance||0)+_pBkExTo.filter(function(e){return e.type==='입금'&&e.category!=='잡수입';}).reduce(function(a,e){return a+(e.amt||0);},0)-_pBkExTo.filter(function(e){return e.type==='출금';}).reduce(function(a,e){return a+(e.amt||0);},0)+_pBkExTo.filter(function(e){return e.category==='잡수입'&&e.payMethod==='계좌이체';}).reduce(function(a,e){return a+(e.amt||0);},0);
+  var allBank=allTX.filter(function(t){return t.type==='출고'&&t.pay==='계좌이체'&&(t.rd||'').slice(0,10)<=dateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+_pBkExTo.filter(function(e){return e.category==='잡수입'&&e.payMethod==='계좌이체';}).reduce(function(a,e){return a+(e.amt||0);},0);
   var allPuTotal=allPU.filter(function(p){return (p.rd||p.dt||'').slice(0,10)<=dateTo;}).reduce(function(a,p){return a+(p.tot||0);},0);
   var allPaid=_pBkExTo.filter(function(e){return e.type==='출금';}).reduce(function(a,e){return a+(e.amt||0);},0);
   var allUnpaid=Math.max(0,allPuTotal-allPaid);
   b+='<div class="sec" style="background:#3a0e00;color:#fff;padding:8px 12px;border-radius:6px;margin-top:16px">📊 전체 누계 현황</div>';
-  b+=kH([{l:'💵 누계 현금수입',v:won(allCash),c:'#1a7a30'},{l:'🏦 누계 계좌수입',v:won(allBank),c:'#1b6ca8'},{l:'📊 누계 판매합계',v:won(allSale),c:'#5c2000'},{l:(allPr>=0?'📈 누계 순수익':'📉 누계 손실'),v:(allPr>=0?'+':'')+won(allPr),c:allPr>=0?'#1a7a30':'#c0392b'}]);
-  b+=kH([{l:'📦 누계 매입합계',v:won(allPuTotal),c:'#a0522d'},{l:'✅ 누계 결재완료',v:won(allPaid),c:'#1a7a30'},{l:'⚠️ 누계 미결재',v:won(allUnpaid),c:allUnpaid>0?'#c0392b':'#aaa'}]);
+  b+='<div class="sec">📅 '+dateTo.slice(0,4)+'년 연간 누계 ('+pYearStart+' ~ '+dateTo+')</div>';
+  b+=kH([{l:'💵 연간 현금수입',v:won(yrCashP),c:'#1a7a30'},{l:'🏦 연간 계좌수입',v:won(yrBankP),c:'#1b6ca8'},{l:'📊 연간 판매합계',v:won(yrSaleP),c:'#5c2000'},{l:'💰 연간 원가합계',v:won(yrCostP),c:'#a0522d'},{l:'🎁 연간 잡수입',v:won(yrJaipP),c:'#8b4513'},{l:(yrPrP>=0?'📈 연간 순수익':'📉 연간 손실'),v:(yrPrP>=0?'+':'')+won(yrPrP),c:yrPrP>=0?'#1a7a30':'#c0392b'}]);
+  if(inclAllCumul){
+    b+='<div class="sec">📈 전체 누계 (처음 ~ '+dateTo+')</div>';
+    b+=kH([{l:'💵 전체 현금수입',v:won(allCash),c:'#1a7a30'},{l:'🏦 전체 계좌수입',v:won(allBank),c:'#1b6ca8'},{l:'📊 전체 판매합계',v:won(allSale),c:'#5c2000'},{l:(allPr>=0?'📈 전체 누적수익':'📉 전체 손실'),v:(allPr>=0?'+':'')+won(allPr),c:allPr>=0?'#1a7a30':'#c0392b'}]);
+    b+=kH([{l:'📦 전체 매입합계',v:won(allPuTotal),c:'#a0522d'},{l:'✅ 전체 결재완료',v:won(allPaid),c:'#1a7a30'},{l:'⚠️ 전체 미결재',v:won(allUnpaid),c:allUnpaid>0?'#c0392b':'#aaa'}]);
+  }
   pOpen(b+sigH());
 }
 function pStockSimple(){
@@ -990,7 +1017,7 @@ function pStock(){
   var allPr=allSale-allCost;
   var _pBkEx=ld('mj_bank_extra',[]);
   var allCash=allTX.filter(function(t){return t.type==='출고'&&t.pay==='현금';}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+_pBkEx.filter(function(e){return e.category==='잡수입'&&e.payMethod==='현금';}).reduce(function(a,e){return a+(e.amt||0);},0);
-  var allBank=allTX.filter(function(t){return t.type==='출고'&&t.pay==='계좌이체';}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+(ld('mj_bank',{balance:0}).balance||0)+_pBkEx.filter(function(e){return e.type==='입금'&&e.category!=='잡수입';}).reduce(function(a,e){return a+(e.amt||0);},0)-_pBkEx.filter(function(e){return e.type==='출금';}).reduce(function(a,e){return a+(e.amt||0);},0)+_pBkEx.filter(function(e){return e.category==='잡수입'&&e.payMethod==='계좌이체';}).reduce(function(a,e){return a+(e.amt||0);},0);
+  var allBank=allTX.filter(function(t){return t.type==='출고'&&t.pay==='계좌이체';}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+_pBkEx.filter(function(e){return e.category==='잡수입'&&e.payMethod==='계좌이체';}).reduce(function(a,e){return a+(e.amt||0);},0);
   var allPuTotal=allPU.reduce(function(a,p){return a+(p.tot||0);},0);
   var allPaid=_pBkEx.filter(function(e){return e.type==='출금';}).reduce(function(a,e){return a+(e.amt||0);},0);
   var allUnpaid=Math.max(0,allPuTotal-allPaid);
@@ -1234,7 +1261,7 @@ function pMo(){
   var allPr=allSale-allCost;
   var _pBkEx=ld('mj_bank_extra',[]);
   var allCash=allTX.filter(function(t){return t.type==='출고'&&t.pay==='현금';}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+_pBkEx.filter(function(e){return e.category==='잡수입'&&e.payMethod==='현금';}).reduce(function(a,e){return a+(e.amt||0);},0);
-  var allBank=allTX.filter(function(t){return t.type==='출고'&&t.pay==='계좌이체';}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+(ld('mj_bank',{balance:0}).balance||0)+_pBkEx.filter(function(e){return e.type==='입금'&&e.category!=='잡수입';}).reduce(function(a,e){return a+(e.amt||0);},0)-_pBkEx.filter(function(e){return e.type==='출금';}).reduce(function(a,e){return a+(e.amt||0);},0)+_pBkEx.filter(function(e){return e.category==='잡수입'&&e.payMethod==='계좌이체';}).reduce(function(a,e){return a+(e.amt||0);},0);
+  var allBank=allTX.filter(function(t){return t.type==='출고'&&t.pay==='계좌이체';}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+_pBkEx.filter(function(e){return e.category==='잡수입'&&e.payMethod==='계좌이체';}).reduce(function(a,e){return a+(e.amt||0);},0);
   var allPuTotal=allPU.reduce(function(a,p){return a+(p.tot||0);},0);
   var allPaid=_pBkEx.filter(function(e){return e.type==='출금';}).reduce(function(a,e){return a+(e.amt||0);},0);
   var allUnpaid=Math.max(0,allPuTotal-allPaid);
@@ -2533,7 +2560,7 @@ function printBank(){
   var _pBkEx=ld('mj_bank_extra',[]);
   var _pBkExTo2=_pBkEx.filter(function(e){return (e.dt||e.rd||'').slice(0,10)<=bkDateTo;});
   var allCash=allTX.filter(function(t){return t.type==='출고'&&t.pay==='현금'&&(t.rd||'').slice(0,10)<=bkDateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+_pBkExTo2.filter(function(e){return e.category==='잡수입'&&e.payMethod==='현금';}).reduce(function(a,e){return a+(e.amt||0);},0);
-  var allBank=allTX.filter(function(t){return t.type==='출고'&&t.pay==='계좌이체'&&(t.rd||'').slice(0,10)<=bkDateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+(ld('mj_bank',{balance:0}).balance||0)+_pBkExTo2.filter(function(e){return e.type==='입금'&&e.category!=='잡수입';}).reduce(function(a,e){return a+(e.amt||0);},0)-_pBkExTo2.filter(function(e){return e.type==='출금';}).reduce(function(a,e){return a+(e.amt||0);},0)+_pBkExTo2.filter(function(e){return e.category==='잡수입'&&e.payMethod==='계좌이체';}).reduce(function(a,e){return a+(e.amt||0);},0);
+  var allBank=allTX.filter(function(t){return t.type==='출고'&&t.pay==='계좌이체'&&(t.rd||'').slice(0,10)<=bkDateTo;}).reduce(function(a,t){return a+t.qty*(t.sale||0);},0)+_pBkExTo2.filter(function(e){return e.category==='잡수입'&&e.payMethod==='계좌이체';}).reduce(function(a,e){return a+(e.amt||0);},0);
   var allPuTotal=allPU.filter(function(p){return (p.rd||p.dt||'').slice(0,10)<=bkDateTo;}).reduce(function(a,p){return a+(p.tot||0);},0);
   var allPaid=_pBkExTo2.filter(function(e){return e.type==='출금';}).reduce(function(a,e){return a+(e.amt||0);},0);
   var allUnpaid=Math.max(0,allPuTotal-allPaid);
@@ -2561,6 +2588,10 @@ function changePYearSel(d){
   pDtYear=parseInt(pDtYear)+d;
   if(pDtYear<2024) pDtYear=2024;
   rP();
+}
+function toggleAllCumul(){
+  var el=document.getElementById('allCumulDiv');
+  if(el) el.style.display=el.style.display==='none'?'block':'none';
 }
 function changeSaleYear(d){
   var now2=new Date();
