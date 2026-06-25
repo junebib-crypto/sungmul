@@ -106,6 +106,7 @@ function getTxName(t){
   return ex(t.name||'');
 }
 
+var DEF_CATS=['매일미사','서적','성물','초/양초','성화/성상','묵주/목걸이','기타'];
 var CATS=ld('mj_cats',['매일미사','서적','성물','초/양초','성화/성상','묵주/목걸이','기타']);
 var ICON={'매일미사':'📅','서적':'📖','성물':'✝️','초/양초':'🕯️','성화/성상':'🖼️','묵주/목걸이':'📿','기타':'📦'};
 var IDATA=[
@@ -764,6 +765,9 @@ function addP(){
   html+='<div class="fld"><label>규격</label><input type="text" class="inp" id="pSpec" placeholder="예: 소형"></div>';
   html+='<div class="fld"><label>수량 *</label><input type="number" class="inp" id="pQty" placeholder="30" min="1"></div>';
   html+='<div class="fld"><label>매입단가 (원) *</label><input type="number" class="inp" id="pCost" placeholder="자동입력됨"></div>';
+  html+='<div class="fld"><label>판매단가 (원)</label><input type="number" class="inp" id="pSale" placeholder="직접입력시 필요"></div>';
+  var purCatOpts=CATS.map(function(c){return '<option value="'+c+'">'+ic(c)+' '+c+'</option>';}).join('');
+  html+='<div class="fld"><label>카테고리</label><select class="inp" id="pCat"><option value="기타">-- 선택 --</option>'+purCatOpts+'</select></div>';
 
   html+='<div class="fld" style="grid-column:1/-1"><label>비고</label><input type="text" class="inp" id="pNote" placeholder="예: 정기 납품"></div>';
   html+='</div>';
@@ -846,6 +850,7 @@ function doPurSave(){
   sP();
   var itId=parseInt(document.getElementById('pItId').value);
   if(itId){var it=IT.find(function(i){return i.id===itId;});if(it&&confirm('재고 입고 반영? ('+it.name+(it.spec?' '+it.spec:'')+' '+it.stock+'→'+(it.stock+qty)+'개)')){it.stock+=qty;sI();}}
+  else if(nm){if(confirm('재고관리에 새 품목으로 추가할까요?\n품목명: '+nm+(spec?' ('+spec+')':'')+'\n수량: '+qty+'개\n매입단가: '+cost+'원')){var pCat=document.getElementById('pCat')?document.getElementById('pCat').value:'기타';var pSale=parseInt(document.getElementById('pSale').value)||0;IT.push({id:uid(),name:nm,spec:spec,cat:pCat,stock:qty,cost:cost,sale:pSale,min:1,sup:sup});sI();}}
   closePurMo();rP();rTop();alert('✅ 매입 등록 완료!');
 }
 
@@ -1819,7 +1824,6 @@ function getSortArrow(col){
 function setSortCol(col){if(stSort===col)stSortDir*=-1;else{stSort=col;stSortDir=1;}rS();}
 
 
-var DEF_CATS=['매일미사','서적','성물','초/양초','성화/성상','묵주/목걸이','기타'];
 function saveCATS(){sv('mj_cats',CATS);}
 function showCatMgr(){
   if(document.getElementById('catMgrMo'))return;
