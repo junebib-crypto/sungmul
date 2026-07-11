@@ -380,8 +380,8 @@ function rD(){
 }
 function dSrch(q){var dp=document.getElementById('dSD');if(!q){dp.style.display='none';return;}var lq=q.toLowerCase();var fl=IT.filter(function(i){return i.name.toLowerCase().includes(lq)||(i.spec||'').toLowerCase().includes(lq);});if(!fl.length){dp.style.display='none';return;}var h='';CATS.forEach(function(cat){var ci=fl.filter(function(i){return i.cat===cat;});if(!ci.length)return;h+='<div class="sc">'+ic(cat)+' '+cat+'</div>';ci.forEach(function(i){h+='<div class="si" onclick="dPk('+i.id+')"><span><b>'+ex(i.name)+'</b>'+sp(i.spec)+'</span><div style="text-align:right;font-size:11px"><div style="color:#1a7a30;font-weight:700">'+won(i.sale)+'</div><div style="color:'+(i.stock<=i.min?'#c0392b':'#aaa')+'">재고:'+i.stock+'</div></div></div>';});});dp.innerHTML=h;dp.style.display='block';}
 function dPk(id){dSel=IT.find(function(i){return i.id===id;});document.getElementById('dSD').style.display='none';rD();}
-function doDS(){if(!dSel){alert('품목을 선택하세요.');return;}var q=parseInt(document.getElementById('dQ').value||0);if(q<=0){alert('수량은 1 이상이어야 합니다.');return;}if(dSel.stock<q){alert('재고 부족 (현재: '+dSel.stock+'개)');return;}var d=new Date();TX.unshift({id:uid(),type:'출고',name:dSel.name,spec:dSel.spec||'',cat:dSel.cat,qty:q,sale:dSel.sale,cost:dSel.cost,pay:dPay,note:document.getElementById('dN').value||'-',dt:d.toLocaleString('ko-KR'),rd:d.toISOString()});sT();var idx=IT.findIndex(function(i){return i.id===dSel.id;});if(idx>=0){IT[idx].stock-=q;sI();}dSel=null;rD();rTop();}
-function delT(id){id=+id;var t=TX.find(function(x){return x.id===id;});if(!t)return;if(!confirm('판매 삭제 시 재고가 복구됩니다.\n삭제하시겠습니까?'))return;var it=IT.find(function(ii){return ii.name===t.name&&(ii.spec||'')===(t.spec||'');});if(it){it.stock+=t.qty;sI();}TX=TX.filter(function(x){return x.id!==id;});sT();if(curTab===0)rD();else if(curTab===2)rSale();rTop();}
+function doDS(){if(!dSel){alert('품목을 선택하세요.');return;}var q=parseInt(document.getElementById('dQ').value||0);if(q<=0){alert('수량은 1 이상이어야 합니다.');return;}if(dSel.stock<q){alert('재고 부족 (현재: '+dSel.stock+'개)');return;}window._mySaving=true;var d=new Date();TX.unshift({id:uid(),type:'출고',name:dSel.name,spec:dSel.spec||'',cat:dSel.cat,qty:q,sale:dSel.sale,cost:dSel.cost,pay:dPay,note:document.getElementById('dN').value||'-',dt:d.toLocaleString('ko-KR'),rd:d.toISOString()});sT();var idx=IT.findIndex(function(i){return i.id===dSel.id;});if(idx>=0){IT[idx].stock-=q;sI();}dSel=null;rD();rTop();setTimeout(function(){window._mySaving=false;},1000);}
+function delT(id){id=+id;var t=TX.find(function(x){return x.id===id;});if(!t)return;if(!confirm('판매 삭제 시 재고가 복구됩니다.\n삭제하시겠습니까?'))return;window._mySaving=true;var it=IT.find(function(ii){return ii.name===t.name&&(ii.spec||'')===(t.spec||'');});if(it){it.stock+=t.qty;sI();}TX=TX.filter(function(x){return x.id!==id;});sT();if(curTab===0)rD();else if(curTab===2)rSale();rTop();setTimeout(function(){window._mySaving=false;},1000);}
 
 /* ===== 재고관리 ===== */
 var stCat='전체', stQ='', stStat=false, stPrice='전체', stSort='', stSortDir=1;
@@ -438,7 +438,7 @@ function rS(){
   h+='</table></div></div>';
   document.getElementById('p1').innerHTML=h;
 }
-function stAdj(id,dir){var it=IT.find(function(i){return i.id===id;});if(!it)return;var q=parseInt(prompt((dir?'입고':'출고')+' 수량 (현재:'+it.stock+'개)','1'));if(!q||q<=0)return;if(!dir&&it.stock<q){alert('재고 부족');return;}it.stock=dir?it.stock+q:it.stock-q;sI();TX.unshift({id:uid(),type:dir?'입고':'출고',name:it.name,spec:it.spec||'',cat:it.cat,qty:q,sale:it.sale,cost:it.cost,pay:dir?null:'현금',note:'재고조정',dt:new Date().toLocaleString('ko-KR'),rd:new Date().toISOString()});sT();rS();rTop();if(curTab===5)rG();}
+function stAdj(id,dir){var it=IT.find(function(i){return i.id===id;});if(!it)return;var q=parseInt(prompt((dir?'입고':'출고')+' 수량 (현재:'+it.stock+'개)','1'));if(!q||q<=0)return;if(!dir&&it.stock<q){alert('재고 부족');return;}window._mySaving=true;it.stock=dir?it.stock+q:it.stock-q;sI();TX.unshift({id:uid(),type:dir?'입고':'출고',name:it.name,spec:it.spec||'',cat:it.cat,qty:q,sale:it.sale,cost:it.cost,pay:dir?null:'현금',note:'재고조정',dt:new Date().toLocaleString('ko-KR'),rd:new Date().toISOString()});sT();rS();rTop();if(curTab===5)rG();setTimeout(function(){window._mySaving=false;},1000);}
 function stEd(id){
   var it=IT.find(function(i){return i.id===id;});if(!it)return;
   if(document.getElementById('stEdMo'))return;
@@ -533,7 +533,7 @@ function doAddIT(){
 }
 
 /* ===== 판매등록 ===== */
-var sSel=null, sPay='현금', sCat='전체', sPrice='전체', sTxMode='전체', sTxYear='', sTxMo='', sTxDay='', sTxFrom='', sTxTo='';
+var sSel=null, sPay='현금', sCat='전체', sPrice='전체', sTxMode='전체', sTxYear='', sTxMo='', sTxDay='', sTxFrom='', sTxTo='', sTxNm='';
 function rSale(){
   // 품목 선택 표시
   var sb='';
@@ -557,6 +557,10 @@ function rSale(){
       if(sTxMode==='기간별') return (!sTxFrom||ymd(d)>=sTxFrom)&&(!sTxTo||ymd(d)<=sTxTo);
       return true;
     }catch(e){return true;}
+  }).filter(function(t){
+    if(!sTxNm) return true;
+    var q=sTxNm.toLowerCase();
+    return (t.name||'').toLowerCase().indexOf(q)>=0||(t.spec||'').toLowerCase().indexOf(q)>=0;
   });
 
 
@@ -656,6 +660,7 @@ function rSale(){
     h+='<input id="txToEl" type="date" value="'+sTxTo+'" onchange="sTxTo=this.value;rSale()" style="border:none;border-radius:5px;padding:5px 8px;font-size:12px;min-width:130px;background:#fff;color:#333">';
   }
   h+='<button onclick="doTxSearch()" style="border:none;border-radius:5px;padding:5px 14px;font-size:12px;cursor:pointer;background:#e74c3c;color:#fff;font-weight:700">검색</button>';
+  h+='<input type="text" placeholder="🔍 품목명 검색" value="'+ex(sTxNm)+'" onchange="sTxNm=this.value;rSale()" onkeyup="if(event.keyCode===13){sTxNm=this.value;rSale();}" style="border:1px solid #ddd;border-radius:5px;padding:5px 10px;font-size:12px;min-width:130px;background:#fff;color:#333;margin-left:6px">';
   if(sTxMode!=='전체'){
     h+='<button onclick="clearTxFilter()" style="border:none;border-radius:5px;padding:5px 10px;font-size:11px;cursor:pointer;background:rgba(255,255,255,.2);color:#fff">전체</button>';
   }
@@ -686,7 +691,7 @@ function sSrch(q){var dp=document.getElementById('sSD');var lq=(q||'').toLowerCa
     return qOk&&cOk&&pOk;
   });if(!fl.length){dp.style.display='none';return;}var h='';CATS.forEach(function(cat){var ci=fl.filter(function(i){return i.cat===cat;});if(!ci.length)return;h+='<div class="sc">'+ic(cat)+' '+cat+'</div>';ci.forEach(function(i){h+='<div class="si" onclick="sPk('+i.id+')"><span><b>'+ex(i.name)+'</b>'+sp(i.spec)+'</span><div style="text-align:right;font-size:11px"><div style="color:#1a7a30;font-weight:700">'+won(i.sale)+'</div><div style="color:'+(i.stock<=i.min?'#c0392b':'#aaa')+'">재고:'+i.stock+'</div></div></div>';});});dp.innerHTML=h;dp.style.display='block';}
 function sPk(id){sSel=IT.find(function(i){return i.id===id;});document.getElementById('sSD').style.display='none';rSale();}
-function doSale(){if(!sSel){alert('품목을 선택하세요.');return;}var sp=parseInt(document.getElementById('sSP').value)||sSel.sale;var q=parseInt(document.getElementById('sQ').value||0);if(q<=0){alert('수량은 1 이상이어야 합니다.');return;}if(sSel.stock<q){alert('재고 부족 (현재: '+sSel.stock+'개)');return;}var ds=document.getElementById('sDT').value;var d=ds?new Date(ds):new Date();TX.unshift({id:uid(),type:'출고',name:sSel.name,spec:sSel.spec||'',cat:sSel.cat,qty:q,sale:sp,cost:sSel.cost,pay:sPay,note:document.getElementById('sN').value||'-',dt:d.toLocaleString('ko-KR'),rd:d.toISOString()});sT();var idx=IT.findIndex(function(i){return i.id===sSel.id;});if(idx>=0){IT[idx].stock-=q;sI();}sSel=null;alert('✅ 판매 등록 완료! (자동 저장됨)');rSale();rTop();}
+function doSale(){if(!sSel){alert('품목을 선택하세요.');return;}var sp=parseInt(document.getElementById('sSP').value)||sSel.sale;var q=parseInt(document.getElementById('sQ').value||0);if(q<=0){alert('수량은 1 이상이어야 합니다.');return;}if(sSel.stock<q){alert('재고 부족 (현재: '+sSel.stock+'개)');return;}window._mySaving=true;var ds=document.getElementById('sDT').value;var d=ds?new Date(ds):new Date();TX.unshift({id:uid(),type:'출고',name:sSel.name,spec:sSel.spec||'',cat:sSel.cat,qty:q,sale:sp,cost:sSel.cost,pay:sPay,note:document.getElementById('sN').value||'-',dt:d.toLocaleString('ko-KR'),rd:d.toISOString()});sT();var idx=IT.findIndex(function(i){return i.id===sSel.id;});if(idx>=0){IT[idx].stock-=q;sI();}sSel=null;alert('✅ 판매 등록 완료! (자동 저장됨)');rSale();rTop();setTimeout(function(){window._mySaving=false;},1000);}
 
 /* ===== 매입관리 ===== */
 var pQ='', pFlt='전체', pDtMode='전체', pDtDate='', pDtFrom='', pDtTo='', pDtYear=new Date().getFullYear(), pDtMoYear=new Date().getFullYear(), pDtMoMo=new Date().getMonth()+1;
@@ -1550,17 +1555,18 @@ function editTx(id){
 function closeEditTx(){var mo=document.getElementById('editTxMo');if(mo)mo.remove();}
 function setEtPay(n){window._etPay=n===0?'현금':'계좌이체';var cv=document.getElementById('etPayCash'),bv=document.getElementById('etPayBank');if(cv){cv.style.borderColor=n===0?'#1a7a30':'#ddd';cv.style.background=n===0?'#eaf7ee':'#fff';cv.style.color=n===0?'#1a7a30':'#aaa';}if(bv){bv.style.borderColor=n===1?'#1b6ca8':'#ddd';bv.style.background=n===1?'#eaf4fb':'#fff';bv.style.color=n===1?'#1b6ca8':'#aaa';}}
 function doEditTx(id){
+  window._mySaving=true;
   id=+id;var t=TX.find(function(x){return x.id===id;});if(!t)return;
   var nm=(document.getElementById('etNm').value||'').trim();
   var qty=parseInt(document.getElementById('etQty').value);
   var sale=parseInt(document.getElementById('etSale').value);
   var spec=(document.getElementById('etSpec').value||'').trim();
   var note=(document.getElementById('etNote').value||'').trim();
-  if(!nm||!qty||!sale){alert('필수 항목을 입력하세요.');return;}
+  if(!nm||!qty||!sale){alert('필수 항목을 입력하세요.');window._mySaving=false;return;}
   var it=IT.find(function(i){return i.name===t.name&&(i.spec||'')===(t.spec||'');});
   if(it){it.stock+=t.qty;it.stock-=qty;if(it.stock<0)it.stock=0;sI();}
   t.name=nm;t.spec=spec;t.qty=qty;t.sale=sale;t.pay=window._etPay||t.pay;t.note=note;
-  sT();closeEditTx();if(curTab===0)rD();else if(curTab===2)rSale();rTop();alert('✅ 판매 수정 완료!');
+  sT();closeEditTx();rD();rSale();rTop();alert('✅ 판매 수정 완료!');setTimeout(function(){window._mySaving=false;},1000);
 }
 function aiAutoFillSup(){
   var catEl=document.getElementById('aiCat'),nmEl=document.getElementById('aiNm'),supEl=document.getElementById('aiSup');
@@ -2627,7 +2633,7 @@ function changeSaleYear(d){
   rSale();
 }
 
-function clearTxFilter(){sTxMode='전체';sTxYear='';sTxMo='';sTxDay='';sTxFrom='';sTxTo='';rSale();}
+function clearTxFilter(){sTxMode='전체';sTxYear='';sTxMo='';sTxDay='';sTxFrom='';sTxTo='';sTxNm='';rSale();}
 
 function doTxSearch(){
   var modeEl=document.getElementById('txModeEl');
@@ -2905,6 +2911,7 @@ function loadFromFirebase(){
 }
 function startRealtime(){
   db.ref('sungmul').on('value',function(snap){
+    if(window._mySaving)return;
     var data=snap.val();if(!data)return;
     ['mj_it','mj_tx','mj_pu','mj_sups','mj_cats','mj_bank','mj_bank_extra','mj_sup_info'].forEach(function(k){if(data[k]!==undefined)localStorage.setItem(k,JSON.stringify(data[k]));});
     IT=ld('mj_it',IDATA);TX=ld('mj_tx',[]);PU=ld('mj_pu',[]);CATS=ld('mj_cats',DEF_CATS);
