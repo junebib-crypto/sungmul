@@ -185,7 +185,7 @@ function importData(){
           showSyncStatus('🔄 Firebase에 저장 중...','#1b6ca8');
           var fbData={
             'mj_it':IT,'mj_tx':TX,'mj_pu':PU,
-            'mj_sups':data.sups||[],'mj_cats':data.cats||[]
+            'mj_sups':data.sups||[],'mj_cats':data.mj_cats||[]
           };
           db.ref('sungmul').update(fbData)
             .then(function(){
@@ -2906,7 +2906,7 @@ function loadFromFirebase(){
     var data=snap.val();
     if(data){['mj_it','mj_tx','mj_pu','mj_sups','mj_cats','mj_bank','mj_bank_extra','mj_sup_info'].forEach(function(k){if(data[k]!==undefined)localStorage.setItem(k,JSON.stringify(data[k]));});}
     IT=ld('mj_it',IDATA);TX=ld('mj_tx',[]);PU=ld('mj_pu',[]);CATS=ld('mj_cats',DEF_CATS);
-    showSyncStatus('✅ 연결됨','#a9dfbf');rTop();rD();startRealtime();
+    showSyncStatus('✅ 연결됨','#a9dfbf');rTop();rD();rSale();startRealtime();
   }).catch(function(){showSyncStatus('⚠️ 오프라인','#f5a0a0');rTop();rD();});
 }
 function startRealtime(){
