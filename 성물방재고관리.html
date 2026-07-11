@@ -1729,7 +1729,7 @@ function previewLedger(){
   var rows='';
   for(var i=0;i<25;i++){
     var bg=i%2===0?'#fff':'#f9f6f2';
-    rows+='<tr style="height:30px;background:'+bg+'"><td style="border:1px solid #bbb;text-align:center;font-size:11px;color:#ccc">'+(i+1)+'</td><td style="border:1px solid #bbb"></td><td style="border:1px solid #bbb"></td><td style="border:1px solid #bbb"></td><td style="border:1px solid #bbb;text-align:center"></td><td style="border:1px solid #bbb"></td><td style="border:1px solid #bbb;text-align:center"></td></tr>';
+    rows+='<tr style="height:30px;background:'+bg+'"><td style="border:1px solid #bbb"></td><td style="border:1px solid #bbb"></td><td style="border:1px solid #bbb"></td><td style="border:1px solid #bbb"></td><td style="border:1px solid #bbb;text-align:center;font-size:16px;font-weight:700">□현금 □계좌이체</td><td style="border:1px solid #bbb"></td><td style="border:1px solid #bbb"></td></tr>';
   }
   var html='<div style="border:1px solid #ccc;border-radius:6px;padding:18px;background:#fff">';
   html+='<div style="text-align:center;margin-bottom:14px">';
@@ -1741,14 +1741,25 @@ function previewLedger(){
   html+='<thead><tr style="background:#5c2000;color:#fff">';
   html+='<th style="border:1px solid #bbb;padding:8px 4px;text-align:center;width:36px">번호</th>';
   html+='<th style="border:1px solid #bbb;padding:8px 4px;text-align:center;width:75px">날짜</th>';
+  html+='<th style="border:1px solid #bbb;padding:8px 4px;text-align:center;">품목명</th>';
+  html+='<th style="border:1px solid #bbb;padding:8px 4px;text-align:center;width:50px">수량</th>';
+  html+='<th style="border:1px solid #bbb;padding:8px 4px;text-align:center;width:110px">금액</th>';
+  html+='<th style="border:1px solid #bbb;padding:8px 4px;text-align:center;width:100px">입금방법<br><span style="font-size:9px;font-weight:400">현금/계좌이체</span></th>';
+  html+='<th style="border:1px solid #bbb;padding:8px 4px;text-align:center;">구매자이름</th>';
+  html+='<th style="border:1px solid #bbb;padding:8px 4px;text-align:center;">판매자이름</th>';
+  html+='</tr></thead>';
+  html+='<thead><tr style="background:#5c2000;color:#fff">';
+  html+='<th style="border:1px solid #bbb;padding:8px 4px;text-align:center;width:36px">번호</th>';
+  html+='<th style="border:1px solid #bbb;padding:8px 4px;text-align:center;width:75px">날짜</th>';
   html+='<th style="border:1px solid #bbb;padding:8px 4px;text-align:center;width:160px">품목명</th>';
   html+='<th style="border:1px solid #bbb;padding:8px 4px;text-align:center;width:50px">수량</th>';
   html+='<th style="border:1px solid #bbb;padding:8px 4px;text-align:center;width:110px">금액</th>';
   html+='<th style="border:1px solid #bbb;padding:8px 4px;text-align:center;width:100px">입금방법<br><span style="font-size:9px;font-weight:400">현금/계좌이체</span></th>';
-  html+='<th style="border:1px solid #bbb;padding:8px 4px;text-align:center;">이름/비고</th>';
+  html+='<th style="border:1px solid #bbb;padding:8px 4px;text-align:center;">구매자이름</th>';
+  html+='<th style="border:1px solid #bbb;padding:8px 4px;text-align:center;">판매자이름</th>';
   html+='</tr></thead><tbody>'+rows+'</tbody>';
 
-  html+='<tfoot><tr style="background:#f0e8dc"><td colspan="3" style="border:1px solid #bbb;padding:9px 10px;text-align:right;font-weight:700;font-size:13px">합 계</td><td style="border:1px solid #bbb"></td><td style="border:1px solid #bbb;padding:9px 8px;font-weight:700;font-size:13px;text-align:right"></td><td style="border:1px solid #bbb;padding:9px 8px;font-size:11px">현금&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;원</td><td style="border:1px solid #bbb;padding:9px 8px;font-size:11px">계좌이체&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;원</td></tr></tfoot>';
+  html+='<tfoot><tr style="background:#f0e8dc"><td colspan="3" style="border:1px solid #bbb;padding:9px 10px;text-align:right;font-weight:700;font-size:13px">합 계</td><td style="border:1px solid #bbb"></td><td style="border:1px solid #bbb;padding:9px 8px;font-weight:700;font-size:13px;text-align:right"></td><td style="border:1px solid #bbb;padding:9px 8px;font-size:13px;font-weight:700">현금&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;원</td><td style="border:1px solid #bbb;padding:9px 8px;font-size:13px;font-weight:700">계좌이체&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;원</td><td style="border:1px solid #bbb"></td></tr></tfoot>';
   html+='</table>';
   // 서명란
   html+='<div style="display:flex;justify-content:flex-end;gap:36px;margin-top:20px;padding-right:10px">';
@@ -1767,11 +1778,12 @@ function printLedger(){
   for(var i=0;i<25;i++){
     var bg=i%2===0?'#fff':'#f9f6f2';
     rows+='<tr style="height:30px">'
-      +'<td style="border:1px solid #bbb;text-align:center;font-size:11px;color:#ccc;background:'+bg+'">'+(i+1)+'</td>'
       +'<td style="border:1px solid #bbb;background:'+bg+'"></td>'
       +'<td style="border:1px solid #bbb;background:'+bg+'"></td>'
       +'<td style="border:1px solid #bbb;background:'+bg+'"></td>'
-      +'<td style="border:1px solid #bbb;text-align:center;font-size:10px;background:'+bg+'">'+payCell+'</td>'
+      +'<td style="border:1px solid #bbb;background:'+bg+'"></td>'
+      +'<td style="border:1px solid #bbb;text-align:center;font-size:16px;font-weight:700;background:'+bg+'">'+payCell+'</td>'
+      +'<td style="border:1px solid #bbb;background:'+bg+'"></td>'
       +'<td style="border:1px solid #bbb;background:'+bg+'"></td>'
       +'</tr>';
   }
@@ -1804,7 +1816,8 @@ function printLedger(){
     +'<th '+thStyle+' width="200">품목명</th>'
     +'<th '+thStyle+' width="80">금액</th>'
     +'<th '+thStyle+' width="140">입금방법</th>'
-    +'<th '+thStyle+'>이름/비고</th>'
+    +'<th '+thStyle+'>구매자이름</th>'
+    +'<th '+thStyle+'>판매자이름</th>'
     +'</tr></thead>'
     +'<tbody>'+rows+'</tbody>'
     +'</table>'
