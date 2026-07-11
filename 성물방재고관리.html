@@ -179,7 +179,7 @@ function importData(){
         try{localStorage.setItem('mj_tx',JSON.stringify(TX));}catch(e){}
         try{localStorage.setItem('mj_pu',JSON.stringify(PU));}catch(e){}
         if(data.sups){try{localStorage.setItem('mj_sups',JSON.stringify(data.sups));}catch(e){}}
-        if(data.cats){try{localStorage.setItem('mj_cats',JSON.stringify(data.cats));}catch(e){}}
+        if(data.mj_cats){try{localStorage.setItem('mj_cats',JSON.stringify(data.mj_cats));}catch(e){}}
         // Firebase에 한번에 저장
         if(typeof db!=='undefined'){
           showSyncStatus('🔄 Firebase에 저장 중...','#1b6ca8');
