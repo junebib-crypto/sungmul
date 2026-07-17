@@ -54,7 +54,7 @@ tr:hover td{background:#fdf8f2}
 <div style="background:#c0392b;color:#fff;text-align:center;padding:8px;font-size:13px;font-weight:700">⚠️ 새 파일 확인용 버전: 2026-06-23 — 인쇄 후 프로그램 복귀 수정</div>
 <div class="hd">
   <div style="display:flex;justify-content:space-between;align-items:flex-start">
-  <h1>✝ 명지성당 성물방 재고관리</h1><div id="syncStatus" style="font-size:11px;color:#a9dfbf;margin-top:2px">🔄 연결중...</div><div style="font-size:10px;opacity:.5;margin-top:2px">v2026-05-31 03:18</div>
+  <h1>✝ <span id="churchNameDisplay"></span>성물방 재고관리 <button onclick="changeChurchName()" style="border:none;background:none;cursor:pointer;font-size:14px;opacity:0.6;vertical-align:middle" title="성당 이름 변경">✏️</button></h1><div id="syncStatus" style="font-size:11px;color:#a9dfbf;margin-top:2px">🔄 연결중...</div><div style="font-size:10px;opacity:.5;margin-top:2px">v2026-05-31 03:18</div>
   <div style="display:flex;gap:6px;margin-top:2px"><button onclick="rMemo()" style="border:none;border-radius:6px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;background:rgba(255,255,255,.15);color:#fff">📝 메모</button><button onclick="exportData()" style="border:none;border-radius:6px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;background:rgba(255,255,255,.2);color:#fff">💾 백업</button><button onclick="importData()" style="border:none;border-radius:6px;padding:5px 11px;font-size:11px;font-weight:700;cursor:pointer;background:rgba(255,255,255,.15);color:#fff">📂 복원</button></div>
   </div>
   <div class="tday" id="topBar"></div>
@@ -109,6 +109,15 @@ function getTxName(t){
 var DEF_CATS=['매일미사','서적','성물','초/양초','성화/성상','묵주/목걸이','기타'];
 var CATS=ld('mj_cats',['매일미사','서적','성물','초/양초','성화/성상','묵주/목걸이','기타']);
 var ICON={'매일미사':'📅','서적':'📖','성물':'✝️','초/양초':'🕯️','성화/성상':'🖼️','묵주/목걸이':'📿','기타':'📦'};
+var CHURCH_NAME=ld('mj_church_name','명지성당');
+function changeChurchName(){
+  var nm=prompt('성당 이름을 입력하세요:',CHURCH_NAME);
+  if(!nm||nm===CHURCH_NAME)return;
+  CHURCH_NAME=nm;
+  sv('mj_church_name',nm);
+  rTop();
+  alert('✅ 성당 이름이 "'+nm+'"으로 변경되었습니다.');
+}
 var IDATA=[
   {id:1,cat:'매일미사',name:'매일미사',spec:'1월호',cost:1800,sale:2500,stock:30,min:10,sup:'한국천주교주교회의'},
   {id:2,cat:'매일미사',name:'매일미사',spec:'2월호',cost:1800,sale:2500,stock:28,min:10,sup:'한국천주교주교회의'},
@@ -277,6 +286,8 @@ function rTop(){
   h+='<div class="tday-box"><div class="l">오늘 수익</div><div class="v" style="color:'+(pr>=0?'#a9dfbf':'#f5a0a0')+'">'+(pr>=0?'+':'')+won(pr)+'</div></div>';
   if(lw>0)h+='<div class="tday-box" style="cursor:pointer" onclick="go(1)"><div class="l">재고부족⚠️</div><div class="v" style="color:#fde68a">'+lw+'개</div></div>';
   document.getElementById('topBar').innerHTML=h;
+  var cn=document.getElementById('churchNameDisplay');
+  if(cn)cn.textContent=CHURCH_NAME+' ';
 }
 
 /* ===== 일계표 ===== */
@@ -903,7 +914,7 @@ function pOpen(b){
   var printCSS='*{box-sizing:border-box;margin:0;padding:0}body{font-family:"Malgun Gothic",sans-serif;padding:20px;font-size:12px;color:#1a0a00}h1{font-size:18px;font-weight:700;text-align:center;color:#5c2000;margin-bottom:4px}.sub{text-align:center;font-size:11px;color:#999;margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid #8b4513}.kp{display:flex;gap:7px;margin-bottom:12px}.kc{flex:1;border:1.5px solid #e0d0b8;border-radius:7px;padding:8px;text-align:center}.kl{font-size:10px;color:#aaa;margin-bottom:2px}.kv{font-size:14px;font-weight:700}table{width:100%;border-collapse:collapse;margin-bottom:10px}th{background:#5c2000;color:#fff;padding:5px 8px;text-align:left;font-size:10px}td{padding:5px 8px;border-bottom:1px solid #f0e8de;font-size:11px}tr:nth-child(even) td{background:#fdf8f2}tfoot td{background:#f5ede0!important;font-weight:700}.sec{font-size:13px;font-weight:700;color:#5c2000;margin:11px 0 5px;padding-left:7px;border-left:4px solid #8b4513}.pos{color:#1a7a30;font-weight:700}.neg{color:#c0392b;font-weight:700}.sig{display:flex;gap:20px;justify-content:flex-end;margin-top:22px}.sb{text-align:center;min-width:80px}.sn{font-size:11px;margin-bottom:30px}.sl{border-top:1px solid #555;padding-top:3px;font-size:10px;color:#777}@media print{@page{margin:12mm;size:A4}}';
   var w=window.open('','_blank','width=880,height=720');
   w.document.open();
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+printCSS+'</style></head><body>'+b+'<div style="text-align:center;font-size:10px;color:#ccc;margin-top:12px">✝ 명지성당 성물방</div></body></html>');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+printCSS+'</style></head><body>'+b+'<div style="text-align:center;font-size:10px;color:#ccc;margin-top:12px">✝ '+CHURCH_NAME+' 성물방</div></body></html>');
   w.document.close();
   setTimeout(function(){w.print();},600);
 }
@@ -962,7 +973,7 @@ function pDay(inclAllCumul){
   var dR=dS.map(function(t){return '<tr><td>'+ex(t.dt)+'</td><td>'+ex(t.name)+sp(t.spec)+'</td><td align="center">'+t.qty+'</td><td align="right">'+won(t.sale)+'</td><td align="right">'+won(t.qty*(t.sale||0))+'</td><td align="right">'+won(t.qty*(t.cost||0))+'</td><td align="center">'+ex(t.pay||'-')+'</td></tr>';}).join('');
   var pR=dP.map(function(p){return '<tr><td>'+ex(p.dt)+'</td><td>'+ex(p.sup)+'</td><td>'+ex(p.name)+sp(p.spec)+'</td><td align="center">'+p.qty+'</td><td align="right">'+won(p.cost)+'</td><td align="right">'+won(p.tot)+'</td></tr>';}).join('');
 
-  var b='<h1>✝ 명지성당 성물방 '+title+'</h1>';
+  var b='<h1>✝ '+CHURCH_NAME+' 성물방 '+title+'</h1>';
   b+='<div class="sub">'+periodLabel+' | 판매 '+dS.length+'건 | 작성일: '+new Date().toLocaleDateString('ko-KR')+'</div>';
   b+=kH([{l:'💵 현금판매',v:won(ca),c:'#1a7a30'},{l:'🏦 계좌이체',v:won(ba),c:'#1b6ca8'},{l:'💵 현금잔액',v:won(pCashBalance),c:'#1a7a30'},{l:'💳 통장잔액',v:won(pBkBalance),c:'#6c3483'},{l:'📊 판매합계',v:won(tS),c:'#5c2000'},{l:'📦 매입합계',v:won(tP),c:'#a0522d'},{l:(pr>=0?'📈 수익':'📉 손실'),v:(pr>=0?'+':'')+won(pr),c:pr>=0?'#1a7a30':'#c0392b'}]);
   if(dS.length){
@@ -1018,7 +1029,7 @@ function pStockSimple(){
     +'tr:nth-child(even) td{background:#fdf8f2}'
     +'td.cat{background:#f5ede0!important;font-weight:700;color:#5c2000}'
     +'@media print{@page{margin:8mm;size:A4}body{padding:0}}';
-  var b='<h1>✝ 명지성당 성물방 재고관리</h1>';
+  var b='<h1>✝ '+CHURCH_NAME+' 성물방 재고관리</h1>';
   b+='<div class="sub">성물 가격표 | 작성일: '+new Date().toLocaleDateString('ko-KR')+'</div>';
   b+='<table><thead><tr><th>카테고리</th><th>품목명</th><th>규격</th><th style="text-align:right">판매가</th></tr></thead><tbody>';
   var cats=[...new Set(IT.map(function(i){return i.cat;}))].sort();
@@ -1038,7 +1049,7 @@ function pStockSimple(){
 function pStock(){
   var tS=IT.reduce(function(a,i){return a+i.stock*i.sale;},0),tC=IT.reduce(function(a,i){return a+i.stock*i.cost;},0),lw=IT.filter(function(i){return i.stock<=i.min;}).length;
   var rows='';CATS.forEach(function(cat){var ci=IT.filter(function(i){return i.cat===cat;});if(!ci.length)return;rows+='<tr><td colspan="9" style="background:#5c2000;color:#fff;font-weight:700;padding:5px 8px">'+ic(cat)+' '+cat+'</td></tr>';ci.forEach(function(i){var m=i.sale>0?Math.round((i.sale-i.cost)/i.sale*100):0;var st=i.stock===0?'품절':i.stock<=i.min?'부족':'정상';var sc=i.stock===0?'#c0392b':i.stock<=i.min?'#c05c00':'#1a7a30';rows+='<tr><td>'+ex(i.name)+'</td><td>'+ex(i.spec||'-')+'</td><td align="right">'+i.cost.toLocaleString()+'</td><td align="right">'+i.sale.toLocaleString()+'</td><td align="center">'+m+'%</td><td align="center" style="color:'+sc+';font-weight:700">'+i.stock+'</td><td align="right">'+(i.stock*i.sale).toLocaleString()+'</td><td align="center" style="color:'+sc+';font-weight:700">'+st+'</td><td>'+ex(i.sup||'-')+'</td></tr>';});});
-  var b='<h1>✝ 명지성당 성물방 재고 현황</h1><div class="sub">작성일: '+new Date().toLocaleDateString('ko-KR')+' | 총 '+IT.length+'종</div>';
+  var b='<h1>✝ '+CHURCH_NAME+' 성물방 재고 현황</h1><div class="sub">작성일: '+new Date().toLocaleDateString('ko-KR')+' | 총 '+IT.length+'종</div>';
   b+=kH([{l:'전체 품목',v:IT.length+'종'},{l:'판매가 합계',v:won(tS),c:'#1a7a30'},{l:'매입가 합계',v:won(tC),c:'#a0522d'},{l:'예상 수익',v:won(tS-tC),c:'#1a7a30'},{l:'부족/품절',v:lw+'개',c:lw?'#c0392b':'#1a7a30'}]);
   b+='<table><thead><tr><th>품목명</th><th>규격</th><th>매입가</th><th>판매가</th><th>마진율</th><th>현재고</th><th>재고금액</th><th>상태</th><th>거래처</th></tr></thead><tbody>'+rows+'</tbody></table>';
   var allTX=ld('mj_tx',[]);var allPU=ld('mj_pu',[]);
@@ -1115,7 +1126,7 @@ function pPrint(){
   var totalUnpaid=Math.max(0,PU.reduce(function(a,p){return a+(p.tot||0);},0)-totalPaid);
 
   var body='<div class="top">'
-    +'<div style="font-size:11px;color:#555;margin-bottom:3px">천주교 부산교구 명지성당</div>'
+    +'<div style="font-size:11px;color:#555;margin-bottom:3px">천주교 부산교구 '+CHURCH_NAME+'</div>'
     +'<div class="title">성 물 방 매 입 장 부</div>'
     +'<div class="sub">'+title+' | 작성일: '+new Date().toLocaleDateString('ko-KR')+'</div>'
     +'</div>'
@@ -1212,7 +1223,7 @@ function _printSup(sups, title){
     +'@media print{@page{margin:8mm;size:A4}body{padding:0}}';
 
   var body='<div class="top">'
-    +'<div style="font-size:11px;color:#555;margin-bottom:3px">천주교 부산교구 명지성당</div>'
+    +'<div style="font-size:11px;color:#555;margin-bottom:3px">천주교 부산교구 '+CHURCH_NAME+'</div>'
     +'<div class="title">성 물 방 거 래 처 장 부</div>'
     +'<div class="sub">'+title+'&nbsp;|&nbsp;작성일: '+new Date().toLocaleDateString('ko-KR')+'</div>'
     +'</div>';
@@ -1281,7 +1292,7 @@ function pMo(){
   var bi={};mS.forEach(function(t){var k=t.name+(t.spec?'_'+t.spec:'');if(!bi[k])bi[k]={name:t.name,spec:t.spec||'',qty:0,sale:0,cost:0};bi[k].qty+=t.qty;bi[k].sale+=t.qty*(t.sale||0);bi[k].cost+=t.qty*(t.cost||0);});
   var dR=Object.entries(bd).sort(function(a,b){return a[0]<b[0]?-1:1;}).map(function(en){var d=en[0],v=en[1];var p=v.sale-v.cost;return '<tr><td>'+dStr(d)+'</td><td align="right">'+won(v.sale)+'</td><td align="right">'+won(v.cost)+'</td><td align="right" class="'+(p>=0?'pos':'neg')+'">'+(p>=0?'+':'')+won(p)+'</td></tr>';}).join('');
   var iR=Object.values(bi).sort(function(a,b){return b.sale-a.sale;}).map(function(r){var p=r.sale-r.cost;return '<tr><td>'+ex(r.name)+sp(r.spec)+'</td><td align="center">'+r.qty+'</td><td align="right">'+won(r.sale)+'</td><td align="right">'+won(r.cost)+'</td><td align="right" class="'+(p>=0?'pos':'neg')+'">'+(p>=0?'+':'')+won(p)+'</td></tr>';}).join('');
-  var b='<h1>✝ 명지성당 성물방 월별 정산</h1><div class="sub">'+ymL(m)+' | 판매 '+mS.length+'건 · 매입 '+mP.length+'건 | 작성일: '+new Date().toLocaleDateString('ko-KR')+'</div>';
+  var b='<h1>✝ '+CHURCH_NAME+' 성물방 월별 정산</h1><div class="sub">'+ymL(m)+' | 판매 '+mS.length+'건 · 매입 '+mP.length+'건 | 작성일: '+new Date().toLocaleDateString('ko-KR')+'</div>';
   b+=kH([{l:'💵 현금',v:won(ca),c:'#1a7a30'},{l:'🏦 계좌이체',v:won(ba),c:'#1b6ca8'},{l:'📊 판매합계',v:won(tS),c:'#5c2000'},{l:'📦 매입합계',v:won(tP),c:'#a0522d'},{l:(pr>=0?'📈 순수익':'📉 손실'),v:(pr>=0?'+':'')+won(pr),c:pr>=0?'#1a7a30':'#c0392b'}]);
   if(dR)b+='<div class="sec">일별 현황</div><table><thead><tr><th>날짜</th><th>판매액</th><th>원가</th><th>수익</th></tr></thead><tbody>'+dR+'</tbody><tfoot><tr><td>합계</td><td align="right">'+won(tS)+'</td><td align="right">'+won(tC)+'</td><td align="right" class="'+(pr>=0?'pos':'neg')+'">'+(pr>=0?'+':'')+won(pr)+'</td></tr></tfoot></table>';
   if(iR)b+='<div class="sec">품목별 현황</div><table><thead><tr><th>품목명</th><th>수량</th><th>판매액</th><th>원가</th><th>수익</th></tr></thead><tbody>'+iR+'</tbody></table>';
@@ -1457,7 +1468,7 @@ function pCal(){
     +'@media print{@page{margin:8mm;size:A4}body{padding:0}}';
 
   var body='<div class="top">'
-    +'<div style="font-size:11px;color:#666">천주교 부산교구 명지성당</div>'
+    +'<div style="font-size:11px;color:#666">천주교 부산교구 '+CHURCH_NAME+'</div>'
     +'<h1>성물방 '+y+'년 '+mo+'월 매출 달력</h1>'
     +'<div class="sub">작성일: '+new Date().toLocaleDateString('ko-KR')+'</div>'
     +'</div>';
@@ -1590,7 +1601,7 @@ function pAnnual(){
   var bkEx=ld('mj_bank_extra',[]);
   var bkAcc=ld('mj_bank',{balance:0});
   var year=new Date().getFullYear();
-  var b='<h1>✝ 천주교 부산교구 명지성당 성물방</h1>';
+  var b='<h1>✝ 천주교 부산교구 '+CHURCH_NAME+' 성물방</h1>';
   b+='<div class="sub">연간 매출 분석 보고서 | '+new Date().toLocaleDateString('ko-KR')+'</div>';
   [year,year-1].forEach(function(yr){
     var yrTx=TX.filter(function(t){try{return t.type==='출고'&&new Date(t.rd).getFullYear()===yr;}catch(e){return false;}});
@@ -1733,7 +1744,7 @@ function previewLedger(){
   }
   var html='<div style="border:1px solid #ccc;border-radius:6px;padding:18px;background:#fff">';
   html+='<div style="text-align:center;margin-bottom:14px">';
-  html+='<div style="font-size:11px;color:#888;margin-bottom:4px">천주교 부산교구 명지성당</div>';
+  html+='<div style="font-size:11px;color:#888;margin-bottom:4px">천주교 부산교구 '+CHURCH_NAME+'</div>';
   html+='<div style="font-size:22px;font-weight:700;letter-spacing:8px;margin-bottom:6px">성 물 방 판 매 일 지</div>';
   html+='<div style="font-size:13px">년&nbsp;&nbsp;&nbsp;&nbsp;월&nbsp;&nbsp;&nbsp;&nbsp;일&nbsp;&nbsp;&nbsp;&nbsp;~&nbsp;&nbsp;&nbsp;&nbsp;년&nbsp;&nbsp;&nbsp;&nbsp;월&nbsp;&nbsp;&nbsp;&nbsp;일</div>';
   html+='</div>';
@@ -1795,7 +1806,7 @@ function printLedger(){
   var thStyle='style="background:#5c2000;color:#fff;border:1px solid #bbb;padding:8px 4px;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact"';
 
   var body='<div class="top">'
-    +'<div class="church">천주교 부산교구 명지성당</div>'
+    +'<div class="church">천주교 부산교구 '+CHURCH_NAME+'</div>'
     +'<div class="title">성 물 방 판 매 일 지</div>'
     +'<div class="period">년&nbsp;&nbsp;&nbsp;&nbsp;월&nbsp;&nbsp;&nbsp;&nbsp;일&nbsp;&nbsp;&nbsp;&nbsp;~&nbsp;&nbsp;&nbsp;&nbsp;년&nbsp;&nbsp;&nbsp;&nbsp;월&nbsp;&nbsp;&nbsp;&nbsp;일</div>'
     +'</div>'
@@ -2575,7 +2586,7 @@ function printBank(){
     +'<td align="right" style="font-weight:700;color:'+(balance>=0?'#1b6ca8':'#c0392b')+'">'+won(balance)+'</td>'
     +'<td></td></tr>';
 
-  var b='<h1>✝ 명지성당 성물방 통장관리</h1>';
+  var b='<h1>✝ '+CHURCH_NAME+' 성물방 통장관리</h1>';
   b+='<div class="sub">'+bankAcc.name+' '+bankAcc.num+' | 조회: '+periodLabel+' | 작성일: '+new Date().toLocaleDateString('ko-KR')+'</div>';
   b+=kH([
     {l:'기초잔액',v:won(bankAcc.balance||0),c:'#555'},
@@ -2716,7 +2727,7 @@ function printTxList(){
     +'<button class="no-print" onclick="window.print()">🖨️ 인쇄</button>'
     +'<button class="no-print" style="right:120px;background:#888" onclick="parent.document.getElementById(\'printFrame\').remove()">✕ 닫기</button>'
     +'<div class="top">'
-    +'<div class="org">천주교 부산교구 명지성당</div>'
+    +'<div class="org">천주교 부산교구 '+CHURCH_NAME+'</div>'
     +'<h1>성 물 방 판 매 일 지</h1>'
     +'<div class="period">'+dateRange+'</div>'
     +'</div>'
@@ -2759,7 +2770,7 @@ function showReceipt(txId){
     +'<button onclick="closeRcpt()" style="position:absolute;top:10px;right:12px;border:none;background:rgba(255,255,255,.2);color:#fff;border-radius:50%;width:28px;height:30px;cursor:pointer;font-size:16px;line-height:30px">×</button>'
     +'<div style="font-size:28px;margin-bottom:6px">✝</div>'
     +'<div style="font-size:15px;font-weight:700;letter-spacing:1px">천주교 부산교구</div>'
-    +'<div style="font-size:18px;font-weight:700;letter-spacing:2px;margin-top:2px">명지성당 성물방</div>'
+    +'<div style="font-size:18px;font-weight:700;letter-spacing:2px;margin-top:2px">'+CHURCH_NAME+' 성물방</div>'
     +'<div style="font-size:11px;opacity:.7;margin-top:5px;letter-spacing:3px">영 수 증</div>'
     +'</div>'
 
@@ -2846,7 +2857,7 @@ function printRcpt(){
   if(!t){
     var content=body.innerHTML;
     printContent='<div class="rcpt">'
-      +'<div class="rtop"><div class="cross">✝</div><div class="church">천주교 부산교구</div><div class="rname">명지성당 성물방</div><div class="rtitle">영 수 증</div></div>'
+      +'<div class="rtop"><div class="cross">✝</div><div class="church">천주교 부산교구</div><div class="rname">'+CHURCH_NAME+' 성물방</div><div class="rtitle">영 수 증</div></div>'
       +'<div class="rbody">'+content+'</div>'
       +'</div>';
   } else {
@@ -2854,7 +2865,7 @@ function printRcpt(){
     printContent='<div class="rcpt">'
       +'<div class="rtop"><div class="cross">✝</div>'
       +'<div class="church">천주교 부산교구</div>'
-      +'<div class="rname">명지성당 성물방</div>'
+      +'<div class="rname">'+CHURCH_NAME+' 성물방</div>'
       +'<div class="rtitle">영 수 증</div></div>'
       +'<div class="rbody">'
       +'<table>'
